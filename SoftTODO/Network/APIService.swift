@@ -2,138 +2,109 @@ import Foundation
 import Alamofire
 import SwiftyJSON
 import RxSwift
+import RxAlamofire
 
 class APIService {
     
     /// 모든 할일 불러오기 API 요청
     /// - Parameter page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
-    static func getAllTodoAPI(page: Int) -> Observable<Result<[AllTaskData], Error>> {
-        let getAllTodoUrl = "################################"
+    static func getAllTodoAPI(page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
+        let getAllTodoUrl = "##################################"
         
-        return Observable.create { observer in
-            AF.request(getAllTodoUrl, method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
-                .responseDecodable(of: GetAllDoResponse.self) { response in
-                    guard let statusCode = response.response?.statusCode else {return}
+        return RxAlamofire.requestData(.get, getAllTodoUrl)
+            .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
+                let statusCode = response.statusCode
+                if statusCode == 204 {
+                    return Observable.error(ApiError.noContent)
+                } else if statusCode == 400 {
+                    return Observable.error(ApiError.badStatus)
+                }
+                
+                print("모든 할일 불러오기 요청 성공")
+                do {
+                    let allTodoData = try JSONDecoder().decode(GetAllDoResponse.self, from: jsonData)
+                    var toDoList: [AllTaskData] = []
                     
-                    switch response.result {
-                    case .success(let allTodoData):
-                        print("모든 할일 불러오기 요청 성공")
-                        
-                        var toDoList: [AllTaskData] = []
-                        
-                        if let todoDatas = allTodoData.data {
-                            for index in 0..<todoDatas.count {
-                                guard let sectionDate = todoDatas[index].updatedAt?.titleDate() else {return}
-                                
-                                guard let id = todoDatas[index].id else {return}
-                                guard let title = todoDatas[index].title else {return}
-                                guard let isDone = todoDatas[index].isDone else {return}
-                                guard let time = todoDatas[index].updatedAt?.currentTime() else {return}
-                                
-                                toDoList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
-                            }
-                            observer.onNext(.success(toDoList))
-                            observer.onCompleted()
-                        }
-                        
-                    case .failure(let err):
-                        print("모든 할일 불러오기 에러: \(err)")
-                        switch statusCode {
-                        case 204:
-                            print("statusCode: 204")
-                            observer.onError(err)
-                        case 400:
-                            print("statusCode: 400")
-                            observer.onError(err)
-                        default:
-                            print("statusCode: default")
-                            observer.onError(err)
+                    if let todoDatas = allTodoData.data {
+                        for index in 0..<todoDatas.count {
+                            guard let sectionDate = todoDatas[index].updatedAt?.titleDate() else {return Observable.error(ApiError.decodingError)}
+                            
+                            guard let id = todoDatas[index].id else {return Observable.error(ApiError.decodingError)}
+                            guard let title = todoDatas[index].title else {return Observable.error(ApiError.decodingError)}
+                            guard let isDone = todoDatas[index].isDone else {return Observable.error(ApiError.decodingError)}
+                            guard let time = todoDatas[index].updatedAt?.currentTime() else {return Observable.error(ApiError.decodingError)}
+                            
+                            toDoList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
                         }
                     }
+                    return Observable.just(.success(toDoList))
+                } catch {
+                    return Observable.error(ApiError.decodingError)
                 }
-            return Disposables.create()
-        }
+            }
     }
-    
+            
     /// 검색 데이터 가져오기 API 요청
     /// - Parameters:
     ///   - searchText: 검색 키워드
     ///   - page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
-    static func getTodoSearch(searchText: String, page: Int) -> Observable<Result<[AllTaskData], Error>> {
-        let getSearchUrl = "################################"
+    static func getTodoSearch(searchText: String, page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
+        let getSearchUrl = "##################################"
         let encodingUrl = getSearchUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         
-        return Observable.create { observer in
-            AF.request(encodingUrl, method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
-                .responseDecodable(of: GetAllDoResponse.self) { response in
-                    guard let statusCode = response.response?.statusCode else {return}
-                    
-                    switch response.result {
-                    case .success(let searchData):
-                        print("검색 데이터 가져오기 요청 성공")
-                        
-//                        if statusCode == 204 {
-//                            observer.onError(ApiError.noContent)
-//                        }
-                        
-                        var searchList: [AllTaskData] = []
-                        
-                        for index in 0..<(searchData.data?.count ?? 0) {
-                            guard let sectionDate = searchData.data![index].updatedAt?.titleDate() else {return}
-                            
-                            guard let id = searchData.data![index].id else {return}
-                            guard let title = searchData.data![index].title else {return}
-                            guard let isDone = searchData.data![index].isDone else {return}
-                            guard let time = searchData.data![index].updatedAt?.currentTime() else {return}
-                            
-                            searchList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
-                        }
-                        observer.onNext(.success(searchList))
-                        
-                    case .failure(let err):
-                        print("검색 데이터 가져오기 error: \(err)")
-                        switch statusCode {
-                        case 400:
-                            observer.onError(err)
-                        default:
-                            observer.onError(err)
-                        }
-                    }
+        return RxAlamofire.requestData(.get, encodingUrl)
+            .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
+                let statusCode = response.statusCode
+                if statusCode == 204 {
+                    return Observable.error(ApiError.noContent)
+                } else if statusCode == 400 {
+                    return Observable.error(ApiError.badStatus)
                 }
-            return Disposables.create()
-        }
+                
+                do {
+                    print("검색 데이터 가져오기 요청 성공")
+                    let searchData = try JSONDecoder().decode(GetAllDoResponse.self, from: jsonData)
+                    var searchList: [AllTaskData] = []
+                    
+                    for index in 0..<(searchData.data?.count ?? 0) {
+                        guard let sectionDate = searchData.data![index].updatedAt?.titleDate() else {return Observable.error(ApiError.decodingError)}
+                        
+                        guard let id = searchData.data![index].id else {return Observable.error(ApiError.decodingError)}
+                        guard let title = searchData.data![index].title else {return Observable.error(ApiError.decodingError)}
+                        guard let isDone = searchData.data![index].isDone else {return Observable.error(ApiError.decodingError)}
+                        guard let time = searchData.data![index].updatedAt?.currentTime() else {return Observable.error(ApiError.decodingError)}
+                        
+                        searchList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
+                    }
+                    return Observable.just(.success(searchList))
+                } catch {
+                    return Observable.error(ApiError.decodingError)
+                }
+            }
     }
 
     /// 할일 삭제하기 API 요청
     /// - Parameter id: 삭제할 할일 아이디
     /// - Returns: 성공 여부
-    static func deleteTodo(id: Int) -> Observable<Result<DeleteResponse, Error>> {
-        let deleteTodoUrl = "################################"
+    static func deleteTodo(id: Int) -> Observable<Result<DeleteResponse, ApiError>> {
+        let deleteTodoUrl = "##################################"
         
-        return Observable.create { observer in
-            AF.request(deleteTodoUrl, method: .delete, parameters: nil, encoding: URLEncoding.default, headers: nil)
-                .responseDecodable(of: DeleteResponse.self) { response in
-                    guard let statusCode = response.response?.statusCode else {return}
-
-                    switch response.result {
-                    case .success(let data):
-                        print("할일 삭제하기 요청 성공")
-                        observer.onNext(.success(data))
-                        
-                    case .failure(let err):
-                        print("할일 삭제하기 error: \(err)")
-                        switch statusCode {
-                        case 400:
-                            observer.onError(err)
-                        default:
-                            observer.onError(err)
-                        }
-                    }
+        return RxAlamofire.requestData(.delete, deleteTodoUrl)
+            .flatMap { response, jsonData -> Observable<Result<DeleteResponse, ApiError>> in
+                let statusCode = response.statusCode
+                if statusCode == 400 {
+                    return Observable.error(ApiError.badStatus)
                 }
-            return Disposables.create()
-        }
+                print("할일 삭제하기 요청 성공")
+                do {
+                    let deleteResponse = try JSONDecoder().decode(DeleteResponse.self, from: jsonData)
+                    return Observable.just(.success(deleteResponse))
+                } catch {
+                    return Observable.error(ApiError.decodingError)
+                }
+            }
     }
     
     /// 할일 추가하기 API 요청
@@ -141,8 +112,8 @@ class APIService {
     ///   - title: 추가할 할일 내용
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
-    static func addTodo(title: String, isDone: Bool) -> Observable<Result<String, Error>> {
-        let addTodoUrl = "################################"
+    static func addTodo(title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
+        let addTodoUrl = "##################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -155,38 +126,30 @@ class APIService {
             "is_done": isDone
         ]
         
-        return Observable.create { observer in
-            AF.request(addTodoUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { response in
-                guard let statusCode = response.response?.statusCode else {return}
+        return RxAlamofire
+            .requestJSON(.post, addTodoUrl, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .map { response, jsonData in
+                let statusCode = response.statusCode
                 
-                switch response.result {
-                case .success(let value):
+                switch statusCode {
+                case 401:
+                    return .failure(ApiError.unAuthorized)
+                case 403:
+                    return .failure(ApiError.forbidden)
+                case 422:
+                    return .failure(ApiError.unprocessableContent)
+                default:
                     print("할일 추가하기 요청 성공")
-                    let json = JSON(value)
+                    let json = JSON(jsonData)
                     print(json)
                     let id = json["data"]["id"].rawValue as! Int
                     let title = json["data"]["title"].rawValue as! String
                     let isDone = json["data"]["is_Done"]
                     let message = json["message"].rawValue as! String
                     
-                    observer.onNext(.success(message))
-                    
-                case .failure(let error):
-                    print("할일 추가하기 error: \(error)")
-                    switch statusCode {
-                    case 401:
-                        observer.onError(error)
-                    case 403:
-                        observer.onError(error)
-                    case 422:
-                        observer.onError(error)
-                    default:
-                        observer.onError(error)
-                    }
+                    return .success(message)
                 }
             }
-            return Disposables.create()
-        }
     }
     
     /// 할일 수정하기 API 요청
@@ -195,8 +158,8 @@ class APIService {
     ///   - title: 할일 수정 할 내용
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
-    static func editTodo(id: Int, title: String, isDone: Bool) -> Observable<Result<String, Error>> {
-        let editTodoUrl = "################################"
+    static func editTodo(id: Int, title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
+        let editTodoUrl = "##################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -209,56 +172,23 @@ class APIService {
             "is_done": isDone
         ]
         
-        return Observable.create { observer in
-            AF.request(editTodoUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseJSON { response in
-                guard let statusCode = response.response?.statusCode else {return}
-                
-                switch response.result {
-                case .success(let value):
-                    print("할일 수정하기 요청 성공")
-                    let json = JSON(value)
-                    print(json)
-                    let id = json["data"]["id"].rawValue as! Int
-                    let title = json["data"]["title"].rawValue as! String
-                    let isDone = json["data"]["is_Done"]
-                    let message = json["message"].rawValue as! String
-                    
-                    observer.onNext(.success(message))
-                    
-                case .failure(let error):
-                    print("할일 수정하기 error: \(error)")
-                    switch statusCode {
-                    case 400:
-                        observer.onError(error)
-                    default:
-                        observer.onError(error)
-                    }
+        return RxAlamofire
+            .requestJSON(.post, editTodoUrl, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .map { response, jsonData in
+                let statusCode = response.statusCode
+                if statusCode == 400 {
+                    return .failure(ApiError.badStatus)
                 }
+                
+                print("할일 수정하기 요청 성공")
+                let json = JSON(jsonData)
+                print(json)
+                let id = json["data"]["id"].rawValue as! Int
+                let title = json["data"]["title"].rawValue as! String
+                let isDone = json["data"]["is_Done"]
+                let message = json["message"].rawValue as! String
+                
+                return .success(message)
             }
-            return Disposables.create()
-        }
     }
-    
-    // 할일 추가 후 할일 목록 불러오기
-//    static func addAndGetAllTodo(title: String, isDone: Bool, completion: @escaping (Result<[AllTaskData], ApiError>) -> Void) {
-//        self.addTodo(title: title, isDone: isDone) { string in
-//            switch string {
-//            case .success(_):
-//                getAllTodoAPI(page: 1) { response in
-//                    switch response {
-//                    case .success(let todoData):
-//                        completion(.success(todoData))
-//                    
-//                    case .failure(let err):
-//                        print(err)
-//                        completion(.failure(err))
-//                    }
-//                }
-//            case .failure(let err):
-//                print(err)
-//                completion(.failure(err))
-//            }
-//        }
-//    }
-    
 }

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		663F97982A00FE22002C2F09 /* HomeTableViewCellDelegete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663F97972A00FE22002C2F09 /* HomeTableViewCellDelegete.swift */; };
 		663F979C2A013EC7002C2F09 /* RxDataSources in Frameworks */ = {isa = PBXBuildFile; productRef = 663F979B2A013EC7002C2F09 /* RxDataSources */; };
+		66447DDF2A0D2461006E1C66 /* RxAlamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 66447DDE2A0D2461006E1C66 /* RxAlamofire */; };
 		6696BE8029FBB27800E03A20 /* AddEditTaskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6696BE7F29FBB27800E03A20 /* AddEditTaskViewModel.swift */; };
 		6696BE8229FBB2D300E03A20 /* TaskUpdateDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6696BE8129FBB2D300E03A20 /* TaskUpdateDelegate.swift */; };
 		66A0389729DEA0750092BF27 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A0389629DEA0750092BF27 /* AppDelegate.swift */; };
@@ -75,6 +76,7 @@
 				66A038C629DF0CBA0092BF27 /* SwiftyJSON in Frameworks */,
 				66A038AC29DEA3930092BF27 /* Alamofire in Frameworks */,
 				663F979C2A013EC7002C2F09 /* RxDataSources in Frameworks */,
+				66447DDF2A0D2461006E1C66 /* RxAlamofire in Frameworks */,
 				66E76DA429F7AF63000D8A9D /* RxCocoa in Frameworks */,
 				66A038AF29DEA3B30092BF27 /* SnapKit in Frameworks */,
 			);
@@ -217,6 +219,7 @@
 				66E76DA529F7AF63000D8A9D /* RxRelay */,
 				66E76DA729F7AF63000D8A9D /* RxSwift */,
 				663F979B2A013EC7002C2F09 /* RxDataSources */,
+				66447DDE2A0D2461006E1C66 /* RxAlamofire */,
 			);
 			productName = SoftTODO;
 			productReference = 66A0389329DEA0750092BF27 /* SoftTODO.app */;
@@ -252,6 +255,7 @@
 				66A038C429DF0CBA0092BF27 /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
 				66E76DA229F7AF63000D8A9D /* XCRemoteSwiftPackageReference "RxSwift" */,
 				663F979A2A013EC7002C2F09 /* XCRemoteSwiftPackageReference "RxDataSources" */,
+				66447DDD2A0D2461006E1C66 /* XCRemoteSwiftPackageReference "RxAlamofire" */,
 			);
 			productRefGroup = 66A0389429DEA0750092BF27 /* Products */;
 			projectDirPath = "";
@@ -518,6 +522,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		66447DDD2A0D2461006E1C66 /* XCRemoteSwiftPackageReference "RxAlamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxAlamofire.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		66A038AA29DEA3930092BF27 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
@@ -557,6 +569,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 663F979A2A013EC7002C2F09 /* XCRemoteSwiftPackageReference "RxDataSources" */;
 			productName = RxDataSources;
+		};
+		66447DDE2A0D2461006E1C66 /* RxAlamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66447DDD2A0D2461006E1C66 /* XCRemoteSwiftPackageReference "RxAlamofire" */;
+			productName = RxAlamofire;
 		};
 		66A038AB29DEA3930092BF27 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
