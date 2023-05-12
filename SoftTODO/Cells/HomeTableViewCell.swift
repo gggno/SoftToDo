@@ -5,8 +5,6 @@ import SnapKit
 class HomeTableViewCell: UITableViewCell {
     static let identifier = "HomeTableViewCell"
     
-    var delegate: HomeTableViewCellDelegete? = nil
-    
     var cellIndexPath: IndexPath? = nil
     
     lazy var checkBoxButton: UIButton = {
@@ -72,9 +70,7 @@ class HomeTableViewCell: UITableViewCell {
         print("handlerCheckBoxBtnClicked()")
         
         if let indexPath = cellIndexPath {
-            delegate?.cellCheckBoxEvent(indexPath: indexPath)
-            
-            
+            NotificationCenter.default.post(name: .CellCheckEvent, object: indexPath)
         }
         
     }

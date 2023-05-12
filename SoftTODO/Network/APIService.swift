@@ -10,7 +10,7 @@ class APIService {
     /// - Parameter page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getAllTodoAPI(page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getAllTodoUrl = "##################################"
+        let getAllTodoUrl = "#############################################"
         
         return RxAlamofire.requestData(.get, getAllTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
@@ -44,14 +44,14 @@ class APIService {
                 }
             }
     }
-            
+    
     /// 검색 데이터 가져오기 API 요청
     /// - Parameters:
     ///   - searchText: 검색 키워드
     ///   - page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getTodoSearch(searchText: String, page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getSearchUrl = "##################################"
+        let getSearchUrl = "#############################################"
         let encodingUrl = getSearchUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         
         return RxAlamofire.requestData(.get, encodingUrl)
@@ -89,7 +89,7 @@ class APIService {
     /// - Parameter id: 삭제할 할일 아이디
     /// - Returns: 성공 여부
     static func deleteTodo(id: Int) -> Observable<Result<DeleteResponse, ApiError>> {
-        let deleteTodoUrl = "##################################"
+        let deleteTodoUrl = "#############################################"
         
         return RxAlamofire.requestData(.delete, deleteTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<DeleteResponse, ApiError>> in
@@ -113,7 +113,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func addTodo(title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let addTodoUrl = "##################################"
+        let addTodoUrl = "#############################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -159,7 +159,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func editTodo(id: Int, title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let editTodoUrl = "##################################"
+        let editTodoUrl = "#############################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",

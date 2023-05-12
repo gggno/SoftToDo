@@ -5,9 +5,9 @@ import RxCocoa
 import RxRelay 
 import RxDataSources
 
-class HomeViewController: UIViewController, HomeTableViewCellDelegete, TaskUpdateDelegate {
+class HomeViewController: UIViewController {
     
-    var todosVM: TodosViewModel = TodosViewModel()
+    var homeVM: HomeViewModel = HomeViewModel()
     
     var allTaskDataList: [AllTaskDataSection] = [] // 할일 가져오기
     
@@ -91,47 +91,33 @@ class HomeViewController: UIViewController, HomeTableViewCellDelegete, TaskUpdat
 //            .subscribe(onNext: { data in
 //                self.todosVM.searchTerm.accept(data)
 //            })
-            .bind(onNext: self.todosVM.searchTerm.accept(_:))
+            .bind(onNext: self.homeVM.searchTerm.accept(_:))
             .disposed(by: disposeBag)
         
         // 가공된 데이터로 테이블 뷰 업데이트 하기
-        self.todosVM
+        self.homeVM
             .todoDatas
-            .observe(on: MainScheduler.instance)
             .withUnretained(self)
             .bind(onNext: { homeVC, todoList in
                 homeVC.allTaskDataList = todoList
                 homeVC.homeTableView.reloadData()
             })
             .disposed(by: disposeBag)
-    }
-    
-    // 체크박스 클릭 델리게이트(HomeTableViewCell에서 수행)
-    func cellCheckBoxEvent(indexPath: IndexPath) {
-        var sectionData = allTaskDataList[indexPath.section]
-        var cellData = sectionData.rows[indexPath.row]
         
-        if cellData.isDone == false { // 미완료일때 눌러서 완료로 변경
-            self.todosVM.fetchEditAndGetTodo(id: cellData.id, title: cellData.title, isDone: true)
-            homeTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: true)
-            
-        } else { // 완료일 때 눌러서 미완료로 변경
-            self.todosVM.fetchEditAndGetTodo(id: cellData.id, title: cellData.title, isDone: false)
-            homeTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: true)
-        }
+        // 스크롤 올리기
+        self.homeVM
+            .tableViewScrollToTop
+            .withUnretained(self)
+            .bind { vc, _ in
+                vc.homeTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: true)
+            }
     }
-    
-    // 할일 추가, 수정할때 델리게이트(AddTaskVC에서 수행)
-    func taskUpdate() {
-        self.todosVM.fetchBeforeRemoveAllToDo(page: 1)
-        self.homeTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: true)
-    }
-    
+ 
     // 위로 당겨서 새로고침 설정
     @objc func refresh(_ sender: AnyObject) {
         print("위로 당겨서 새로고침")
         
-        self.todosVM.fetchBeforeRemoveAllToDo(page: 1)
+        self.homeVM.fetchBeforeRemoveAllToDo(page: 1)
         DispatchQueue.main.async {
             self.refreshControl.endRefreshing()
         }
@@ -142,9 +128,6 @@ class HomeViewController: UIViewController, HomeTableViewCellDelegete, TaskUpdat
         print("plusBtnClicked() clicked")
         
         let addVC = AddEditTaskViewController()
-        
-        // 델리겟 세팅
-        addVC.delegate = self
         present(addVC, animated: true)
     }
     
@@ -216,8 +199,6 @@ extension HomeViewController: UITableViewDataSource {
         cell.selectionStyle = .none
 
         cell.cellIndexPath = indexPath
-        cell.delegate = self
-
         cell.updateUI(cellData: allTaskDataList, index: indexPath)
 
         return cell
@@ -241,10 +222,10 @@ extension HomeViewController: UITableViewDelegate {
         // 스크롤이 바닥에 닿았을 때
         if distanceFromBottom < height {
             if self.searchTextField.text == "" {
-                self.todosVM.fetchAllToDoMore()
+                self.homeVM.fetchAllToDoMore()
                 
             } else {
-                self.todosVM.fetchSearchToDoMore(searchText: self.searchTextField.text!)
+                self.homeVM.fetchSearchToDoMore(searchText: self.searchTextField.text!)
             }
         }
     }
@@ -269,9 +250,6 @@ extension HomeViewController: UITableViewDelegate {
                 editVC.isDoneSwitch.isOn = true
             }
             
-            // 델리겟 세팅
-            editVC.delegate = self
-            
             self.present(editVC, animated: true)
             
             success(true)
@@ -295,7 +273,7 @@ extension HomeViewController: UITableViewDelegate {
                 
                 // 삭제 할 아이디
                 let targetId = self.allTaskDataList[indexPath.section].rows[indexPath.row].id
-                self.todosVM.fetchDeleteTodo(id: targetId, indexpath: indexPath)
+                self.homeVM.fetchDeleteTodo(id: targetId, indexpath: indexPath)
             }))
             self.present(alert, animated: true)
             

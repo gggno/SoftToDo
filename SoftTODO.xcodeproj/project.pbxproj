@@ -10,8 +10,8 @@
 		663F97982A00FE22002C2F09 /* HomeTableViewCellDelegete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663F97972A00FE22002C2F09 /* HomeTableViewCellDelegete.swift */; };
 		663F979C2A013EC7002C2F09 /* RxDataSources in Frameworks */ = {isa = PBXBuildFile; productRef = 663F979B2A013EC7002C2F09 /* RxDataSources */; };
 		66447DDF2A0D2461006E1C66 /* RxAlamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 66447DDE2A0D2461006E1C66 /* RxAlamofire */; };
+		66447DE12A0E1495006E1C66 /* Notification+Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66447DE02A0E1495006E1C66 /* Notification+Name.swift */; };
 		6696BE8029FBB27800E03A20 /* AddEditTaskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6696BE7F29FBB27800E03A20 /* AddEditTaskViewModel.swift */; };
-		6696BE8229FBB2D300E03A20 /* TaskUpdateDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6696BE8129FBB2D300E03A20 /* TaskUpdateDelegate.swift */; };
 		66A0389729DEA0750092BF27 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A0389629DEA0750092BF27 /* AppDelegate.swift */; };
 		66A0389929DEA0750092BF27 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A0389829DEA0750092BF27 /* SceneDelegate.swift */; };
 		66A0389B29DEA0750092BF27 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A0389A29DEA0750092BF27 /* HomeViewController.swift */; };
@@ -36,13 +36,13 @@
 		66E76DA629F7AF63000D8A9D /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 66E76DA529F7AF63000D8A9D /* RxRelay */; };
 		66E76DA829F7AF63000D8A9D /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 66E76DA729F7AF63000D8A9D /* RxSwift */; };
 		66E76DAB29F95876000D8A9D /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E76DAA29F95876000D8A9D /* NetworkError.swift */; };
-		66E76DAE29F9861E000D8A9D /* TodosViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E76DAD29F9861E000D8A9D /* TodosViewModel.swift */; };
+		66E76DAE29F9861E000D8A9D /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E76DAD29F9861E000D8A9D /* HomeViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		663F97972A00FE22002C2F09 /* HomeTableViewCellDelegete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTableViewCellDelegete.swift; sourceTree = "<group>"; };
+		66447DE02A0E1495006E1C66 /* Notification+Name.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Name.swift"; sourceTree = "<group>"; };
 		6696BE7F29FBB27800E03A20 /* AddEditTaskViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditTaskViewModel.swift; sourceTree = "<group>"; };
-		6696BE8129FBB2D300E03A20 /* TaskUpdateDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskUpdateDelegate.swift; sourceTree = "<group>"; };
 		66A0389329DEA0750092BF27 /* SoftTODO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SoftTODO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66A0389629DEA0750092BF27 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		66A0389829DEA0750092BF27 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -63,7 +63,7 @@
 		66A038D929E441060092BF27 /* GetSearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetSearchResponse.swift; sourceTree = "<group>"; };
 		66A038DD29E477E80092BF27 /* DeleteResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteResponse.swift; sourceTree = "<group>"; };
 		66E76DAA29F95876000D8A9D /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
-		66E76DAD29F9861E000D8A9D /* TodosViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodosViewModel.swift; sourceTree = "<group>"; };
+		66E76DAD29F9861E000D8A9D /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,7 +88,6 @@
 		6696BE7C29FAB3A100E03A20 /* Delegate */ = {
 			isa = PBXGroup;
 			children = (
-				6696BE8129FBB2D300E03A20 /* TaskUpdateDelegate.swift */,
 				663F97972A00FE22002C2F09 /* HomeTableViewCellDelegete.swift */,
 			);
 			path = Delegate;
@@ -153,6 +152,7 @@
 				66A038B929DEE6AB0092BF27 /* UITextField+Padding.swift */,
 				66A038D329E0649D0092BF27 /* String+Date.swift */,
 				66A038D529E1C39B0092BF27 /* String+StrikeThrough.swift */,
+				66447DE02A0E1495006E1C66 /* Notification+Name.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -189,7 +189,7 @@
 		66E76DAC29F98596000D8A9D /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				66E76DAD29F9861E000D8A9D /* TodosViewModel.swift */,
+				66E76DAD29F9861E000D8A9D /* HomeViewModel.swift */,
 				6696BE7F29FBB27800E03A20 /* AddEditTaskViewModel.swift */,
 			);
 			path = ViewModels;
@@ -285,15 +285,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66447DE12A0E1495006E1C66 /* Notification+Name.swift in Sources */,
 				66A038C829DF0ECC0092BF27 /* GetAllDoResponse.swift in Sources */,
-				66E76DAE29F9861E000D8A9D /* TodosViewModel.swift in Sources */,
+				66E76DAE29F9861E000D8A9D /* HomeViewModel.swift in Sources */,
 				66E76DAB29F95876000D8A9D /* NetworkError.swift in Sources */,
 				66A038B629DEBE6B0092BF27 /* HomeTableViewCell.swift in Sources */,
 				66A0389B29DEA0750092BF27 /* HomeViewController.swift in Sources */,
 				66A038B129DEBBCE0092BF27 /* AddEditTaskViewController.swift in Sources */,
 				66A038BA29DEE6AB0092BF27 /* UITextField+Padding.swift in Sources */,
 				66A038DA29E441060092BF27 /* GetSearchResponse.swift in Sources */,
-				6696BE8229FBB2D300E03A20 /* TaskUpdateDelegate.swift in Sources */,
 				66A038C029DF066C0092BF27 /* APIService.swift in Sources */,
 				6696BE8029FBB27800E03A20 /* AddEditTaskViewModel.swift in Sources */,
 				663F97982A00FE22002C2F09 /* HomeTableViewCellDelegete.swift in Sources */,

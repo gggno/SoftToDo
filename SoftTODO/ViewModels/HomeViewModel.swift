@@ -2,13 +2,15 @@ import Foundation
 import RxSwift
 import RxRelay
    
-class TodosViewModel {
+class HomeViewModel {
     
     // 가공되는 최종 데이터
     var todoDatas: BehaviorRelay<[AllTaskDataSection]> = BehaviorRelay(value: [])
     
     // 검색어
     var searchTerm: BehaviorRelay<String> = BehaviorRelay(value: "")
+    
+    var tableViewScrollToTop: PublishRelay<Void> = PublishRelay()
     
     var disposeBag = DisposeBag()
      
@@ -17,21 +19,51 @@ class TodosViewModel {
     var loadingCheck: Bool = false // 로딩중이면 리턴
     
     init() {
+        // 최초로 할일 불러오기
+        fetchAllToDo(page: 1)
+        
         // 검색어를 받아서 불러오기
         searchTerm
             .skip(2)
             .debounce(RxTimeInterval.milliseconds(500), scheduler: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] input in
-                guard let self = self else {return}
+            .withUnretained(self)
+            .subscribe(onNext: { vm, input in
                 if input.count > 0 {
-                    fetchSearchToDo(searchText: input)
+                    vm.fetchSearchToDo(searchText: input)
                 } else {
-                    fetchBeforeRemoveAllToDo(page: 1)
+                    vm.fetchBeforeRemoveAllToDo(page: 1)
                 }
         }).disposed(by: disposeBag)
         
-        // 최초로 할일 불러오기
-        fetchAllToDo(page: 1)
+        // 할일 수정, 추가때 노티 받음(AddEditTaskViewModel에서 전달 HomeVM과 AddEditVM의 연관성)
+        NotificationCenter
+            .default
+            .rx
+            .notification(.TaskUpdateEvent)
+            .withUnretained(self)
+            .bind { vm, noti in
+                vm.fetchBeforeRemoveAllToDo(page: 1)
+            }.disposed(by: disposeBag)
+        
+        // 셀 체크박스 클릭
+        NotificationCenter
+            .default
+            .rx
+            .notification(.CellCheckEvent)
+            .withUnretained(self)
+            .bind { vm, noti in
+                if let indexPath = noti.object as? IndexPath {
+                    let sectionData = vm.todoDatas.value[indexPath.section]
+                    let cellData = sectionData.rows[indexPath.row]
+                    
+                    if cellData.isDone == false { // 미완료일때 눌러서 완료로 변경
+                        vm.fetchEditAndGetTodo(id: cellData.id, title: cellData.title, isDone: true)
+                        
+                    } else { // 완료일 때 눌러서 미완료로 변경
+                        vm.fetchEditAndGetTodo(id: cellData.id, title: cellData.title, isDone: false)
+                    }
+                }
+            }.disposed(by: disposeBag)
     }
     
     /// 할일 불러오기
@@ -46,12 +78,12 @@ class TodosViewModel {
         
         // 서비스 로직
         APIService.getAllTodoAPI(page: page)
+            .withUnretained(self)
             .do(onCompleted: {
                 self.loadingCheck = false
             })
-            .subscribe(onNext: { [weak self] response in
-                guard let self = self else {return}
-                toDoCurrentPage = page
+            .subscribe(onNext: { vm, response in
+                vm.toDoCurrentPage = page
                 
                 switch response {
                 case .success(let toDoData):
@@ -66,19 +98,19 @@ class TodosViewModel {
                     for index in 0..<toDoData.count {
                         var toDo: [TaskData] = []
                         toDo.append(TaskData(id: toDoData[index].id, title: toDoData[index].title, isDone: toDoData[index].isDone, time: toDoData[index].time))
-                        var currentDatas = todoDatas.value
+                        var currentDatas = vm.todoDatas.value
                         
                         // 처음 값을 넣거나 들어온 값이 다른 섹션(날짜)이면 추가
-                        if (index == 0 && todoDatas.value.isEmpty) || date != toDoData[index].sectionDate {
+                        if (index == 0 && vm.todoDatas.value.isEmpty) || date != toDoData[index].sectionDate {
                             
                             currentDatas.append(AllTaskDataSection(sectionDate: toDoData[index].sectionDate, rows: toDo))
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                             
                             date = toDoData[index].sectionDate
                             
                         } else { // 기존 날짜와 동일하다면 row만 추가
-                            currentDatas[todoDatas.value.count-1].rows.append(contentsOf: toDo)
-                            todoDatas.accept(currentDatas)
+                            currentDatas[vm.todoDatas.value.count-1].rows.append(contentsOf: toDo)
+                            vm.todoDatas.accept(currentDatas)
                         }
                     }
                 
@@ -101,13 +133,13 @@ class TodosViewModel {
         
         // 서비스 로직
         APIService.getAllTodoAPI(page: page)
+            .withUnretained(self)
             .do(onCompleted: {
                 self.loadingCheck = false
             })
-            .subscribe(onNext: { [weak self] response in
-                guard let self = self else {return}
-                toDoCurrentPage = page
-                todoDatas.accept([])
+            .subscribe(onNext: { vm, response in
+                vm.toDoCurrentPage = page
+                vm.todoDatas.accept([])
                 
                 switch response {
                 case .success(let toDoData):
@@ -122,20 +154,21 @@ class TodosViewModel {
                     for index in 0..<toDoData.count {
                         var toDo: [TaskData] = []
                         toDo.append(TaskData(id: toDoData[index].id, title: toDoData[index].title, isDone: toDoData[index].isDone, time: toDoData[index].time))
-                        var currentDatas = todoDatas.value
+                        var currentDatas = vm.todoDatas.value
                         // 처음 값을 넣거나 들어온 값이 다른 섹션(날짜)이면 추가
-                        if (index == 0 && todoDatas.value.isEmpty) || date != toDoData[index].sectionDate {
+                        if (index == 0 && vm.todoDatas.value.isEmpty) || date != toDoData[index].sectionDate {
                             currentDatas.append(AllTaskDataSection(sectionDate: toDoData[index].sectionDate, rows: toDo))
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                             
                             date = toDoData[index].sectionDate
                             
                         } else { // 기존 날짜와 동일하다면 row만 추가
                             currentDatas[currentDatas.count-1].rows.append(contentsOf: toDo)
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                         }
                     }
-                    loadingCheck = false
+                    vm.loadingCheck = false
+                    vm.tableViewScrollToTop.accept(())
                 
                 case .failure(let err):
                     print(err)
@@ -161,8 +194,8 @@ class TodosViewModel {
         loadingCheck = true
         
         APIService.getTodoSearch(searchText: searchText, page: 1)
-            .subscribe(onNext: { [weak self] searchDatas in
-                guard let self = self else {return}
+            .withUnretained(self)
+            .subscribe(onNext: { vm, searchDatas in
                 print(searchDatas)
                 switch searchDatas {
                 case .success(let searchData):
@@ -173,27 +206,27 @@ class TodosViewModel {
                     }
                     
                     var date = searchData[0].sectionDate
-                    todoDatas.accept([])
+                    vm.todoDatas.accept([])
                     
                     for index in 0..<searchData.count {
                         
                         var search: [TaskData] = []
                         search.append(TaskData(id: searchData[index].id, title: searchData[index].title, isDone: searchData[index].isDone, time: searchData[index].time))
-                        var currentDatas = todoDatas.value
+                        var currentDatas = vm.todoDatas.value
                         
                         // 처음 값을 넣거나 들어온 값이 다른 섹션(날짜)이면 추가
-                        if (index == 0 && todoDatas.value.isEmpty) || date != searchData[index].sectionDate {
+                        if (index == 0 && vm.todoDatas.value.isEmpty) || date != searchData[index].sectionDate {
                             currentDatas.append(AllTaskDataSection(sectionDate: searchData[index].sectionDate, rows: search))
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                             
                             date = searchData[index].sectionDate
                             
                         } else { // 기존 날짜와 동일하다면 row만 추가
                             currentDatas[currentDatas.count-1].rows.append(contentsOf: search)
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                         }
                     }
-                    loadingCheck = false
+                    vm.loadingCheck = false
                     
                 case .failure(let err):
                     print(err)
@@ -213,12 +246,12 @@ class TodosViewModel {
         loadingCheck = true
         
         APIService.getTodoSearch(searchText: searchText, page: searchCurrentPage+1)
+            .withUnretained(self)
             .do(onCompleted: {
                 self.loadingCheck = false
             })
-            .subscribe(onNext: { [weak self] searchDatas in
-                guard let self = self else {return}
-                searchCurrentPage += 1
+                .subscribe(onNext: { vm, searchDatas in
+                    vm.searchCurrentPage += 1
                 
                 switch searchDatas {
                 case .success(let searchData):
@@ -228,24 +261,24 @@ class TodosViewModel {
                         return
                     }
                     
-                    var date = todoDatas.value.last?.sectionDate
+                    var date = vm.todoDatas.value.last?.sectionDate
                     
                     for index in 0..<searchData.count {
                         
                         var search: [TaskData] = []
                         search.append(TaskData(id: searchData[index].id, title: searchData[index].title, isDone: searchData[index].isDone, time: searchData[index].time))
-                        var currentDatas = todoDatas.value
+                        var currentDatas = vm.todoDatas.value
                         
                         // 처음 값을 넣거나 들어온 값이 다른 섹션(날짜)이면 추가
-                        if (index == 0 && todoDatas.value.isEmpty) || date != searchData[index].sectionDate {
+                        if (index == 0 && vm.todoDatas.value.isEmpty) || date != searchData[index].sectionDate {
                             currentDatas.append(AllTaskDataSection(sectionDate: searchData[index].sectionDate, rows: search))
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                             
                             date = searchData[index].sectionDate
                             
                         } else { // 기존 날짜와 동일하다면 row만 추가
                             currentDatas[currentDatas.count-1].rows.append(contentsOf: search)
-                            todoDatas.accept(currentDatas)
+                            vm.todoDatas.accept(currentDatas)
                         }
                     }
                     
@@ -261,14 +294,13 @@ class TodosViewModel {
     ///   - indexpath: 삭제 할 IndexPath
     func fetchDeleteTodo(id: Int, indexpath: IndexPath) {
         APIService.deleteTodo(id: id)
-            .subscribe(onNext: { [weak self] result in
-                guard let self = self else {return}
-                
+            .withUnretained(self)
+            .subscribe(onNext: { vm, result in
                 switch result {
                 case .success(let data):
                     print(data)
                     
-                    var currentDatas = todoDatas.value
+                    var currentDatas = vm.todoDatas.value
                     
                     // 해당하는 아이디의 할일 삭제
                     currentDatas[indexpath.section].rows.remove(at: indexpath.row)
@@ -278,7 +310,7 @@ class TodosViewModel {
                         currentDatas.remove(at: indexpath.section)
                     }
                     
-                    todoDatas.accept(currentDatas)
+                    vm.todoDatas.accept(currentDatas)
                     
                 case .failure(let err):
                     print(err)
@@ -293,12 +325,11 @@ class TodosViewModel {
     ///   - isDone: 완료 여부
     func fetchEditAndGetTodo(id: Int, title: String, isDone: Bool) {
         APIService.editTodo(id: id, title: title, isDone: isDone)
-            .subscribe(onNext: { [weak self] response in
-                guard let self = self else {return}
-                
+            .withUnretained(self)
+            .subscribe(onNext: { vm, response in
                 switch response {
-                case .success(let data):
-                    self.fetchBeforeRemoveAllToDo(page: 1)
+                case .success(_):
+                    vm.fetchBeforeRemoveAllToDo(page: 1)
                     
                 case .failure(let err):
                     print(err)
