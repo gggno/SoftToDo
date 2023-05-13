@@ -244,7 +244,6 @@ extension HomeViewController: UITableViewDelegate {
             editVC.taskTextField.text = self.allTaskDataList[indexPath.section].rows[indexPath.row].title
             
             editVC.id = self.allTaskDataList[indexPath.section].rows[indexPath.row].id
-            editVC.isDone = self.allTaskDataList[indexPath.section].rows[indexPath.row].isDone
             
             if self.allTaskDataList[indexPath.section].rows[indexPath.row].isDone == true {
                 editVC.isDoneSwitch.isOn = true

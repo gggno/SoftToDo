@@ -10,7 +10,7 @@ class APIService {
     /// - Parameter page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getAllTodoAPI(page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getAllTodoUrl = "#############################################"
+        let getAllTodoUrl = "#######################################"
         
         return RxAlamofire.requestData(.get, getAllTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
@@ -22,22 +22,22 @@ class APIService {
                 }
                 
                 print("모든 할일 불러오기 요청 성공")
+                
                 do {
                     let allTodoData = try JSONDecoder().decode(GetAllDoResponse.self, from: jsonData)
-                    var toDoList: [AllTaskData] = []
                     
-                    if let todoDatas = allTodoData.data {
-                        for index in 0..<todoDatas.count {
-                            guard let sectionDate = todoDatas[index].updatedAt?.titleDate() else {return Observable.error(ApiError.decodingError)}
-                            
-                            guard let id = todoDatas[index].id else {return Observable.error(ApiError.decodingError)}
-                            guard let title = todoDatas[index].title else {return Observable.error(ApiError.decodingError)}
-                            guard let isDone = todoDatas[index].isDone else {return Observable.error(ApiError.decodingError)}
-                            guard let time = todoDatas[index].updatedAt?.currentTime() else {return Observable.error(ApiError.decodingError)}
-                            
-                            toDoList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
-                        }
+                    guard let todoDatas = allTodoData.data else {return Observable.just(.success([]))}
+                        
+                    let toDoList = todoDatas.compactMap { todoData -> AllTaskData? in
+                        guard let sectionDate = todoData.updatedAt?.titleDate() else { return nil }
+                        guard let id = todoData.id else { return nil }
+                        guard let title = todoData.title else { return nil }
+                        guard let isDone = todoData.isDone else { return nil }
+                        guard let time = todoData.updatedAt?.currentTime() else { return nil }
+                        
+                        return AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time)
                     }
+                    
                     return Observable.just(.success(toDoList))
                 } catch {
                     return Observable.error(ApiError.decodingError)
@@ -51,7 +51,7 @@ class APIService {
     ///   - page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getTodoSearch(searchText: String, page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getSearchUrl = "#############################################"
+        let getSearchUrl = "#######################################"
         let encodingUrl = getSearchUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         
         return RxAlamofire.requestData(.get, encodingUrl)
@@ -65,19 +65,21 @@ class APIService {
                 
                 do {
                     print("검색 데이터 가져오기 요청 성공")
-                    let searchData = try JSONDecoder().decode(GetAllDoResponse.self, from: jsonData)
-                    var searchList: [AllTaskData] = []
+                    let searchAllData = try JSONDecoder().decode(GetAllDoResponse.self, from: jsonData)
+
+                    guard let searchData = searchAllData.data else { return Observable.just(.success([])) }
                     
-                    for index in 0..<(searchData.data?.count ?? 0) {
-                        guard let sectionDate = searchData.data![index].updatedAt?.titleDate() else {return Observable.error(ApiError.decodingError)}
+                    let searchList = searchData.compactMap { searchData -> AllTaskData? in
+                        guard let sectionDate = searchData.updatedAt?.titleDate() else { return nil}
                         
-                        guard let id = searchData.data![index].id else {return Observable.error(ApiError.decodingError)}
-                        guard let title = searchData.data![index].title else {return Observable.error(ApiError.decodingError)}
-                        guard let isDone = searchData.data![index].isDone else {return Observable.error(ApiError.decodingError)}
-                        guard let time = searchData.data![index].updatedAt?.currentTime() else {return Observable.error(ApiError.decodingError)}
+                        guard let id = searchData.id else { return nil }
+                        guard let title = searchData.title else { return nil }
+                        guard let isDone = searchData.isDone else { return nil }
+                        guard let time = searchData.updatedAt?.currentTime() else { return nil }
                         
-                        searchList.append(AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time))
+                        return AllTaskData(sectionDate: sectionDate, id: id, title: title, isDone: isDone, time: time)
                     }
+                    
                     return Observable.just(.success(searchList))
                 } catch {
                     return Observable.error(ApiError.decodingError)
@@ -89,7 +91,7 @@ class APIService {
     /// - Parameter id: 삭제할 할일 아이디
     /// - Returns: 성공 여부
     static func deleteTodo(id: Int) -> Observable<Result<DeleteResponse, ApiError>> {
-        let deleteTodoUrl = "#############################################"
+        let deleteTodoUrl = "#######################################"
         
         return RxAlamofire.requestData(.delete, deleteTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<DeleteResponse, ApiError>> in
@@ -113,7 +115,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func addTodo(title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let addTodoUrl = "#############################################"
+        let addTodoUrl = "#######################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -159,7 +161,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func editTodo(id: Int, title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let editTodoUrl = "#############################################"
+        let editTodoUrl = "#######################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",

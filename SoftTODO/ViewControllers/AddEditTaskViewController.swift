@@ -6,7 +6,8 @@ class AddEditTaskViewController: UIViewController {
     
     var id = 0
     var titleText = ""
-    var isDone = false
+    
+    var isDoneBehaviorRelay: BehaviorRelay<Bool> = BehaviorRelay(value: false)
     
     var addEditVM: AddEditTaskViewModel = AddEditTaskViewModel()
     
@@ -105,11 +106,11 @@ class AddEditTaskViewController: UIViewController {
                 if taskTextField.text!.count >= 6 {
                     if titleLabel.text == "할일 추가" { // 할일 추가인 경우
                         print("ADD completedBtnClicked")
-                        addEditVM.fetchAddTodo(title: taskTextField.text!, isDone: false)
+                        addEditVM.fetchAddTodo(title: taskTextField.text!, isDone: isDoneBehaviorRelay.value)
                         
                     } else { // 할일 수정인 경우
                         print("EDIT completedBtnClicked")
-                        addEditVM.fetchEditTodo(id: id, title: taskTextField.text!, isDone: isDone)
+                        addEditVM.fetchEditTodo(id: id, title: taskTextField.text!, isDone: isDoneBehaviorRelay.value)
                     }
                     dismiss(animated: true)
                     
@@ -122,12 +123,12 @@ class AddEditTaskViewController: UIViewController {
         
         // 완료 미완료 여부를 스위치를 통해 전달
         isDoneSwitch.rx.isOn
-            .bind(onNext: { [weak self] enabled in
-                guard let self = self else {return}
+            .withUnretained(self)
+            .bind(onNext: { vc, enabled in
                 if enabled {
-                    isDone = true
+                    vc.isDoneBehaviorRelay.accept(true)
                 } else {
-                    isDone = false
+                    vc.isDoneBehaviorRelay.accept(false)
                 }
             }).disposed(by: disposeBag)
     }
