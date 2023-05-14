@@ -10,15 +10,15 @@ class APIService {
     /// - Parameter page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getAllTodoAPI(page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getAllTodoUrl = "#######################################"
+        let getAllTodoUrl = "#########################################"
         
         return RxAlamofire.requestData(.get, getAllTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
                 let statusCode = response.statusCode
                 if statusCode == 204 {
-                    return Observable.error(ApiError.noContent)
+                    return Observable.just(.failure(ApiError.noContent))
                 } else if statusCode == 400 {
-                    return Observable.error(ApiError.badStatus)
+                    return Observable.just(.failure(ApiError.badStatus))
                 }
                 
                 print("모든 할일 불러오기 요청 성공")
@@ -40,7 +40,7 @@ class APIService {
                     
                     return Observable.just(.success(toDoList))
                 } catch {
-                    return Observable.error(ApiError.decodingError)
+                    return Observable.just(.failure(ApiError.decodingError))
                 }
             }
     }
@@ -51,16 +51,16 @@ class APIService {
     ///   - page: 불러 올 페이지
     /// - Returns: 불러 온 데이터
     static func getTodoSearch(searchText: String, page: Int) -> Observable<Result<[AllTaskData], ApiError>> {
-        let getSearchUrl = "#######################################"
+        let getSearchUrl = "#########################################"
         let encodingUrl = getSearchUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         
         return RxAlamofire.requestData(.get, encodingUrl)
             .flatMap { response, jsonData -> Observable<Result<[AllTaskData], ApiError>> in
                 let statusCode = response.statusCode
                 if statusCode == 204 {
-                    return Observable.error(ApiError.noContent)
+                    return Observable.just(.failure(ApiError.noContent))
                 } else if statusCode == 400 {
-                    return Observable.error(ApiError.badStatus)
+                    return Observable.just(.failure(ApiError.badStatus))
                 }
                 
                 do {
@@ -82,7 +82,7 @@ class APIService {
                     
                     return Observable.just(.success(searchList))
                 } catch {
-                    return Observable.error(ApiError.decodingError)
+                    return Observable.just(.failure(ApiError.decodingError))
                 }
             }
     }
@@ -91,20 +91,20 @@ class APIService {
     /// - Parameter id: 삭제할 할일 아이디
     /// - Returns: 성공 여부
     static func deleteTodo(id: Int) -> Observable<Result<DeleteResponse, ApiError>> {
-        let deleteTodoUrl = "#######################################"
+        let deleteTodoUrl = "#########################################"
         
         return RxAlamofire.requestData(.delete, deleteTodoUrl)
             .flatMap { response, jsonData -> Observable<Result<DeleteResponse, ApiError>> in
                 let statusCode = response.statusCode
                 if statusCode == 400 {
-                    return Observable.error(ApiError.badStatus)
+                    return Observable.just(.failure(ApiError.badStatus))
                 }
                 print("할일 삭제하기 요청 성공")
                 do {
                     let deleteResponse = try JSONDecoder().decode(DeleteResponse.self, from: jsonData)
                     return Observable.just(.success(deleteResponse))
                 } catch {
-                    return Observable.error(ApiError.decodingError)
+                    return Observable.just(.failure(ApiError.decodingError))
                 }
             }
     }
@@ -115,7 +115,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func addTodo(title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let addTodoUrl = "#######################################"
+        let addTodoUrl = "#########################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -161,7 +161,7 @@ class APIService {
     ///   - isDone: 완료 여부
     /// - Returns: 성공 여부
     static func editTodo(id: Int, title: String, isDone: Bool) -> Observable<Result<String, ApiError>> {
-        let editTodoUrl = "#######################################"
+        let editTodoUrl = "#########################################"
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
